@@ -1,0 +1,6 @@
+<resources>
+    <!-- Tema dasar jendela; tampilan aplikasi sepenuhnya dari Compose (MaternaTrackTheme) -->
+    <style name="Theme.MaternaTrack" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/latar</item>
+    </style>
+</resources>

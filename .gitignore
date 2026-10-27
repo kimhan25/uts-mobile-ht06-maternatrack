@@ -1,0 +1,20 @@
+# Gradle & build
+.gradle/
+build/
+/app/build/
+.kotlin/
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+local.properties
+captures/
+.externalNativeBuild/
+.cxx/
+
+# OS
+.DS_Store
+
+# APK hasil build (diunggah terpisah)
+*.apk
+*.aab

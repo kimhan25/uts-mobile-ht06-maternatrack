@@ -22,6 +22,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -33,6 +34,7 @@ import com.maternatrack.app.R
 import com.maternatrack.app.logic.HasilValidasi
 import com.maternatrack.app.logic.ringkasanHari
 import com.maternatrack.app.model.CatatanMakan
+import com.maternatrack.app.model.KelompokMakanan
 import com.maternatrack.app.model.StatusHarian
 import com.maternatrack.app.model.WaktuMakan
 import com.maternatrack.app.ui.components.FormCatatan
@@ -62,6 +64,9 @@ fun MaternaTrackScreen() {
     // State formulir
     var tanggal by remember { mutableStateOf(hariIni) }
     var waktu by remember { mutableStateOf<WaktuMakan?>(null) }
+    // Porsi disimpan sebagai teks; kelompok yang tidak ada di map berarti belum dipilih
+    val porsiTeks = remember { mutableStateMapOf<KelompokMakanan, String>() }
+    var minumSuplemen by remember { mutableStateOf(false) }
     var hasil by remember { mutableStateOf<HasilValidasi?>(null) }
     var pemicuError by remember { mutableIntStateOf(0) }
 
@@ -105,6 +110,13 @@ fun MaternaTrackScreen() {
                     waktu = waktu,
                     onWaktu = { waktu = it },
                     waktuSudahDicatat = waktuSudahDicatat,
+                    porsiTeks = porsiTeks,
+                    onPorsi = { kelompok, teks ->
+                        if (teks == null) porsiTeks.remove(kelompok) else porsiTeks[kelompok] = teks
+                    },
+                    minumSuplemen = minumSuplemen,
+                    onSuplemen = { minumSuplemen = it },
+                    adaArahanSuplemen = adaArahanSuplemen,
                     hasil = hasil,
                     pemicuError = pemicuError
                 )

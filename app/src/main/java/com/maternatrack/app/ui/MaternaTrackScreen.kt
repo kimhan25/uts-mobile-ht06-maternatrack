@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -36,6 +37,7 @@ import com.maternatrack.app.logic.FieldForm
 import com.maternatrack.app.logic.FormInput
 import com.maternatrack.app.logic.HasilValidasi
 import com.maternatrack.app.logic.keCatatan
+import com.maternatrack.app.logic.ringkasHarian
 import com.maternatrack.app.logic.ringkasanHari
 import com.maternatrack.app.logic.validasiCatatan
 import com.maternatrack.app.logic.waktuBerikutnya
@@ -43,9 +45,12 @@ import com.maternatrack.app.model.CatatanMakan
 import com.maternatrack.app.model.KelompokMakanan
 import com.maternatrack.app.model.StatusHarian
 import com.maternatrack.app.model.WaktuMakan
+import com.maternatrack.app.ui.components.EmptyRiwayat
 import com.maternatrack.app.ui.components.FormCatatan
 import com.maternatrack.app.ui.components.HeaderCard
+import com.maternatrack.app.ui.components.JudulRiwayat
 import com.maternatrack.app.ui.components.PiringHariIniCard
+import com.maternatrack.app.ui.components.RiwayatHariCard
 import com.maternatrack.app.ui.theme.MtColor
 import com.maternatrack.app.ui.theme.judul
 import java.time.LocalDate
@@ -66,6 +71,7 @@ fun MaternaTrackScreen() {
     val ringkasanHariIni by remember {
         derivedStateOf { ringkasanHari(hariIni, catatan, adaArahanSuplemen) }
     }
+    val harian by remember { derivedStateOf { ringkasHarian(catatan, adaArahanSuplemen) } }
 
     // State formulir
     var tanggal by remember { mutableStateOf(hariIni) }
@@ -177,6 +183,21 @@ fun MaternaTrackScreen() {
                     hasil = hasil,
                     pemicuError = pemicuError
                 )
+            }
+
+            item(key = "riwayat_judul") { JudulRiwayat(catatan.size) }
+            if (harian.isEmpty()) {
+                item(key = "riwayat_kosong") { EmptyRiwayat() }
+            } else {
+                // Satu kartu per tanggal; animateItem membuat kartu baru meluncur masuk
+                items(harian, key = { "hari_${it.tanggal}" }) { hari ->
+                    RiwayatHariCard(
+                        ringkasan = hari,
+                        hariIni = hariIni,
+                        onDetail = { },
+                        modifier = Modifier.animateItem()
+                    )
+                }
             }
         }
     }

@@ -45,6 +45,7 @@ import com.maternatrack.app.model.CatatanMakan
 import com.maternatrack.app.model.KelompokMakanan
 import com.maternatrack.app.model.StatusHarian
 import com.maternatrack.app.model.WaktuMakan
+import com.maternatrack.app.ui.components.DetailHariSheet
 import com.maternatrack.app.ui.components.EmptyRiwayat
 import com.maternatrack.app.ui.components.FormCatatan
 import com.maternatrack.app.ui.components.HeaderCard
@@ -130,6 +131,9 @@ fun MaternaTrackScreen() {
         derivedStateOf { catatan.filter { it.tanggal == tanggal }.map { it.waktu }.toSet() }
     }
 
+    // Tanggal yang sedang dibuka di sheet Detail Hari (null = sheet tertutup)
+    var detailTanggal by remember { mutableStateOf<LocalDate?>(null) }
+
     val listState = rememberLazyListState()
     val bawah = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
@@ -194,12 +198,17 @@ fun MaternaTrackScreen() {
                     RiwayatHariCard(
                         ringkasan = hari,
                         hariIni = hariIni,
-                        onDetail = { },
+                        onDetail = { detailTanggal = hari.tanggal },
                         modifier = Modifier.animateItem()
                     )
                 }
             }
         }
+    }
+
+    val detail = harian.firstOrNull { it.tanggal == detailTanggal }
+    if (detail != null) {
+        DetailHariSheet(detail, adaArahanSuplemen, onTutup = { detailTanggal = null })
     }
 }
 

@@ -20,6 +20,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -29,9 +30,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.maternatrack.app.R
+import com.maternatrack.app.logic.HasilValidasi
 import com.maternatrack.app.logic.ringkasanHari
 import com.maternatrack.app.model.CatatanMakan
 import com.maternatrack.app.model.StatusHarian
+import com.maternatrack.app.model.WaktuMakan
+import com.maternatrack.app.ui.components.FormCatatan
 import com.maternatrack.app.ui.components.HeaderCard
 import com.maternatrack.app.ui.components.PiringHariIniCard
 import com.maternatrack.app.ui.theme.MtColor
@@ -55,6 +59,17 @@ fun MaternaTrackScreen() {
         derivedStateOf { ringkasanHari(hariIni, catatan, adaArahanSuplemen) }
     }
 
+    // State formulir
+    var tanggal by remember { mutableStateOf(hariIni) }
+    var waktu by remember { mutableStateOf<WaktuMakan?>(null) }
+    var hasil by remember { mutableStateOf<HasilValidasi?>(null) }
+    var pemicuError by remember { mutableIntStateOf(0) }
+
+    val tanggalBercatatan by remember { derivedStateOf { catatan.map { it.tanggal }.toSet() } }
+    val waktuSudahDicatat by remember {
+        derivedStateOf { catatan.filter { it.tanggal == tanggal }.map { it.waktu }.toSet() }
+    }
+
     val listState = rememberLazyListState()
     val insets = WindowInsets.systemBars.asPaddingValues()
 
@@ -74,6 +89,26 @@ fun MaternaTrackScreen() {
                 HeaderCard(hariIni, lengkap = ringkasanHariIni.status == StatusHarian.LENGKAP)
             }
             item(key = "piring") { PiringHariIniCard(ringkasanHariIni, adaArahanSuplemen) }
+            item(key = "form") {
+                FormCatatan(
+                    hariIni = hariIni,
+                    tanggal = tanggal,
+                    onTanggal = { baru ->
+                        tanggal = baru
+                        // Waktu yang sudah dicatat di tanggal baru tidak boleh tetap terpilih
+                        val w = waktu
+                        if (w != null && !w.bolehBerulang && catatan.any { it.tanggal == baru && it.waktu == w }) {
+                            waktu = null
+                        }
+                    },
+                    tanggalBercatatan = tanggalBercatatan,
+                    waktu = waktu,
+                    onWaktu = { waktu = it },
+                    waktuSudahDicatat = waktuSudahDicatat,
+                    hasil = hasil,
+                    pemicuError = pemicuError
+                )
+            }
         }
     }
 }

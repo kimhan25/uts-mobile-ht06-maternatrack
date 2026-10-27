@@ -1,8 +1,8 @@
 package com.maternatrack.app.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -21,6 +21,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -104,13 +105,16 @@ private fun KartuWaktu(
         tampilSudah -> MtColor.LimeMid
         else -> MtColor.Line
     }
-    val skala by animateFloatAsState(
-        if (dipilih) 1.05f else 1f,
-        spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessMedium),
-        label = "skalaWaktu"
-    )
+    // Memantul sesaat ketika dipilih, lalu kembali ke ukuran normal
+    val skala = remember { Animatable(1f) }
+    LaunchedEffect(dipilih) {
+        if (dipilih) {
+            skala.snapTo(0.94f)
+            skala.animateTo(1f, spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessMedium))
+        }
+    }
 
-    Box(modifier.scale(skala)) {
+    Box(modifier.scale(skala.value)) {
         Column(
             Modifier
                 .fillMaxWidth()

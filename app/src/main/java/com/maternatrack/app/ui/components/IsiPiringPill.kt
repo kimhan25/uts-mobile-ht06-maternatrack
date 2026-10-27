@@ -1,6 +1,7 @@
 package com.maternatrack.app.ui.components
 
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -30,7 +31,9 @@ import androidx.compose.material.icons.rounded.Remove
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -45,8 +48,8 @@ import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.maternatrack.app.logic.PORSI_MAKS
 import com.maternatrack.app.ui.theme.MtColor
@@ -112,14 +115,17 @@ private fun KerangkaPill(
 ) {
     val latar by animateColorAsState(if (dipilih) warna.mid else MtColor.Surface, label = "latarPill")
     val garis by animateColorAsState(if (dipilih) warna.mid else MtColor.Line, label = "garisPill")
-    val skala by animateFloatAsState(
-        if (dipilih) 1.02f else 1f,
-        spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessMedium),
-        label = "skalaPill"
-    )
+    // Memantul sesaat ketika dipilih, lalu kembali ke ukuran normal
+    val skala = remember { Animatable(1f) }
+    LaunchedEffect(dipilih) {
+        if (dipilih) {
+            skala.snapTo(0.94f)
+            skala.animateTo(1f, spring(dampingRatio = 0.4f, stiffness = Spring.StiffnessMedium))
+        }
+    }
     val miring by animateFloatAsState(if (dipilih) -8f else 0f, spring(dampingRatio = 0.35f), label = "miring")
 
-    Box(Modifier.fillMaxWidth().scale(skala)) {
+    Box(Modifier.fillMaxWidth().scale(skala.value)) {
         Row(
             Modifier
                 .fillMaxWidth()

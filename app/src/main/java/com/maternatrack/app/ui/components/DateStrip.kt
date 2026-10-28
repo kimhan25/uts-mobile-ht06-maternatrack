@@ -41,6 +41,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.maternatrack.app.R
 import com.maternatrack.app.logic.formatBulan
+import com.maternatrack.app.logic.formatPanjang
 import com.maternatrack.app.logic.hariPendek
 import com.maternatrack.app.ui.theme.MtColor
 import com.maternatrack.app.ui.theme.MtRadius
@@ -204,6 +205,27 @@ private fun DialogTanggal(
         },
         colors = warna
     ) {
-        DatePicker(state = state, colors = warna, showModeToggle = false)
+        // Judul dan tanggal terpilih ditulis sendiri agar tetap berbahasa Indonesia
+        DatePicker(
+            state = state,
+            colors = warna,
+            showModeToggle = false,
+            title = {
+                Text(
+                    "Pilih tanggal makan",
+                    style = isi(13, 700),
+                    color = MtColor.InkMuted,
+                    modifier = Modifier.padding(start = 24.dp, end = 12.dp, top = 16.dp)
+                )
+            },
+            headline = {
+                Text(
+                    state.selectedDateMillis?.let { formatPanjang(it.keTanggal()) } ?: "-",
+                    style = judul(24),
+                    color = MtColor.Ink,
+                    modifier = Modifier.padding(start = 24.dp, end = 12.dp, bottom = 12.dp)
+                )
+            }
+        )
     }
 }

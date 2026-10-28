@@ -2,6 +2,7 @@ package com.maternatrack.app.ui
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.interaction.collectIsDraggedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.PaddingValues
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.asPaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
@@ -20,6 +22,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -27,6 +30,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,6 +41,7 @@ import com.maternatrack.app.logic.FieldForm
 import com.maternatrack.app.logic.FormInput
 import com.maternatrack.app.logic.HasilValidasi
 import com.maternatrack.app.logic.keCatatan
+import com.maternatrack.app.logic.pesanEdukasi
 import com.maternatrack.app.logic.ringkasHarian
 import com.maternatrack.app.logic.ringkasanHari
 import com.maternatrack.app.logic.validasiCatatan
@@ -46,15 +51,19 @@ import com.maternatrack.app.model.KelompokMakanan
 import com.maternatrack.app.model.StatusHarian
 import com.maternatrack.app.model.WaktuMakan
 import com.maternatrack.app.ui.components.DetailHariSheet
+import com.maternatrack.app.ui.components.EdukasiCard
 import com.maternatrack.app.ui.components.EmptyRiwayat
+import com.maternatrack.app.ui.components.FloatingNavBar
 import com.maternatrack.app.ui.components.FormCatatan
 import com.maternatrack.app.ui.components.HeaderCard
 import com.maternatrack.app.ui.components.JudulRiwayat
 import com.maternatrack.app.ui.components.PiringHariIniCard
 import com.maternatrack.app.ui.components.RiwayatHariCard
+import com.maternatrack.app.ui.components.TabNav
 import com.maternatrack.app.ui.theme.MtColor
 import com.maternatrack.app.ui.theme.judul
 import java.time.LocalDate
+import kotlinx.coroutines.launch
 
 /**
  * Satu-satunya layar aplikasi. Semua state disimpan di sini (in-memory),
@@ -135,6 +144,36 @@ fun MaternaTrackScreen() {
     var detailTanggal by remember { mutableStateOf<LocalDate?>(null) }
 
     val listState = rememberLazyListState()
+    val scope = rememberCoroutineScope()
+
+    // Urutan item LazyColumn: appbar(0), header(1), piring(2), form(3), riwayat_judul(4),
+    // kartu hari / empty state, lalu edukasi
+    val indeksForm = 3
+    val indeksRiwayat = 4
+    val indeksEdukasi = indeksRiwayat + 1 + maxOf(harian.size, 1)
+
+    // Tab aktif mengikuti bagian yang sedang terlihat saat Bunda menggulir
+    val tabAktif by remember {
+        derivedStateOf {
+            val pertama = listState.layoutInfo.visibleItemsInfo.firstOrNull()?.key as? String ?: "appbar"
+            when {
+                !listState.canScrollForward && listState.canScrollBackward -> TabNav.EDUKASI
+                pertama in listOf("appbar", "header", "piring", "form") -> TabNav.BERANDA
+                pertama == "edukasi" -> TabNav.EDUKASI
+                else -> TabNav.RIWAYAT
+            }
+        }
+    }
+
+    // Tab yang baru diketuk tetap disorot sampai Bunda menggulir sendiri
+    // (penting saat isi layar pendek dan bagian tujuan tidak bisa naik ke atas)
+    var tabDiketuk by remember { mutableStateOf<TabNav?>(null) }
+    val sedangDiseret by listState.interactionSource.collectIsDraggedAsState()
+    LaunchedEffect(sedangDiseret) { if (sedangDiseret) tabDiketuk = null }
+
+    fun gulirKe(indeks: Int) {
+        scope.launch { listState.animateScrollToItem(indeks) }
+    }
     val bawah = WindowInsets.navigationBars.asPaddingValues().calculateBottomPadding()
 
     // statusBarsPadding: daftar dimulai di bawah status bar sehingga konten tidak tertutup jam/ikon
@@ -203,7 +242,32 @@ fun MaternaTrackScreen() {
                     )
                 }
             }
+
+            item(key = "edukasi") { EdukasiCard(pesanEdukasi(ringkasanHariIni)) }
         }
+
+        FloatingNavBar(
+            aktif = tabDiketuk ?: tabAktif,
+            onTab = { tab ->
+                tabDiketuk = tab
+                when (tab) {
+                    TabNav.BERANDA -> gulirKe(0)
+                    TabNav.RIWAYAT -> gulirKe(indeksRiwayat)
+                    TabNav.EDUKASI -> gulirKe(indeksEdukasi)
+                }
+            },
+            onCatat = {
+                // Tombol + : ke form dan langsung pilih waktu makan berikutnya yang belum dicatat
+                if (waktu == null) waktu = waktuBerikutnya(tanggal, catatan)
+                tabDiketuk = TabNav.BERANDA
+                gulirKe(indeksForm)
+            },
+            onProfil = { },
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
+        )
     }
 
     val detail = harian.firstOrNull { it.tanggal == detailTanggal }

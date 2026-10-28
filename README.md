@@ -33,8 +33,8 @@ Ibu hamil dianjurkan makan beragam: makanan pokok, lauk hewani, lauk nabati, say
 | Pesan edukatif umum | Kartu "Tahukah Bunda?" menyesuaikan kelompok yang belum terpenuhi hari ini |
 | Detail hari | Lembar bawah: total porsi per kelompok, catatan per waktu makan, cerita Bunda |
 | Profil Bunda | Switch "Saya mendapat arahan suplemen dari nakes"; jika mati, suplemen tidak dihitung |
-| Umpan balik | Toast "Sarapan tersimpan", confetti dan "Hebat, Bunda!" saat isi piring hari ini lengkap |
-| Floating navbar | Tab menggulir ke Beranda / Riwayat / Edukasi, tombol + ke form, logo membuka Profil |
+| Umpan balik | Toast "Sarapan tercatat" / "Makan malam tercatat" turun dari atas layar (tanggal + persentase hari itu, bisa diusap ke atas), pop-up "Hebat, Bunda!" dengan confetti di tengah layar saat isi piring hari ini lengkap |
+| Floating navbar | Navbar pendek berwarna pink: Beranda (kembali ke atas) dan Profil. Tab Riwayat dan Edukasi tampil redup karena layarnya untuk UAS. Navbar bersembunyi saat menggulir ke bawah dan hanya muncul lagi saat menggulir ke atas |
 
 ## Model data
 
@@ -68,7 +68,7 @@ Pemetaan ke data yang diminta studi kasus:
 
 | Elemen data | Di aplikasi |
 |---|---|
-| Tanggal | `tanggal` (strip 7 hari + dialog kalender) |
+| Tanggal | `tanggal` (strip 7 hari terakhir + dialog kalender, penanda saat mencatat untuk hari lain) |
 | Kelompok makanan | `porsi[POKOK]` |
 | Sayur dan buah | `porsi[SAYUR]`, `porsi[BUAH]` |
 | Sumber protein | `porsi[HEWANI]`, `porsi[NABATI]` |
@@ -82,7 +82,7 @@ Semua logika berupa fungsi Kotlin murni di `app/src/main/java/com/maternatrack/a
 - **Gabungan harian** (`ringkasanHari`): kelompok terpenuhi = gabungan kelompok dari semua waktu makan di tanggal itu (`Set`, tanpa duplikat). Suplemen terpenuhi jika ada catatan dengan `minumSuplemen` dan Bunda mendapat arahan suplemen.
 - **Persentase**: `terpenuhi × 100 / komponen`, dibulatkan. Komponen = 6 (5 kelompok + suplemen) atau 5 jika tidak ada arahan suplemen.
 - **Klasifikasi status** (`statusDari`): 0% Belum ada isi piring, 1–59% Yuk dilengkapi, 60–99% Sedikit lagi lengkap, 100% Hebat! Semua terpenuhi.
-- **Ringkasan**: persentase dan "n dari 6 kelompok gizi terpenuhi" hari ini, jumlah catatan makan, total porsi per kelompok di detail hari. Semua dihitung ulang otomatis (`derivedStateOf`) saat data berubah.
+- **Ringkasan**: persentase dan "n dari 6 kelompok gizi terpenuhi" hari ini, jumlah kali makan yang dicatat (chip "n kali makan"), total porsi per kelompok di detail hari. Semua dihitung ulang otomatis (`derivedStateOf`) saat data berubah.
 - **Pesan edukasi** (`pesanEdukasi`): berdasar kelompok pertama yang belum terpenuhi (sayur, buah, protein, pokok), selalu disertai "Info edukasi umum, bukan saran medis."
 
 ## Validasi
@@ -90,6 +90,7 @@ Semua logika berupa fungsi Kotlin murni di `app/src/main/java/com/maternatrack/a
 | Field | Aturan | Pesan |
 |---|---|---|
 | Tanggal | Tidak boleh setelah hari ini (kalender juga menonaktifkannya) | Tanggal tidak boleh di masa depan |
+| Tanggal | Paling lama 6 hari sebelum hari ini, yaitu 7 hari terakhir (`HARI_MUNDUR_MAKS`) | Pilih tanggal dalam 7 hari terakhir |
 | Waktu makan | Wajib dipilih | Pilih waktu makan |
 | Waktu makan | Sarapan/Siang/Malam hanya sekali per tanggal (Camilan boleh berulang) | Sarapan tanggal ini sudah dicatat |
 | Isi piring | Minimal satu kelompok atau suplemen | Pilih minimal satu isi piring |
@@ -123,10 +124,13 @@ docs/                          wireframe, desain, screenshot, test case
 Lewat terminal:
 
 ```bash
-./gradlew assembleDebug          # APK di app/build/outputs/apk/debug/app-debug.apk
+./gradlew assembleRelease        # APK pengumpulan (R8 aktif) di app/build/outputs/apk/release/app-release.apk
+./gradlew assembleDebug          # APK debug di app/build/outputs/apk/debug/app-debug.apk
 ./gradlew testDebugUnitTest      # unit test logika
 ./gradlew installDebug           # pasang ke emulator/HP yang terhubung
 ```
+
+APK pengumpulan dibuat dari build release: kode dioptimasi R8 (sekitar 2 MB, sedangkan debug sekitar 19 MB) dan ditandatangani dengan kunci debug agar bisa langsung dipasang.
 
 Teknologi: Kotlin, Jetpack Compose (BOM 2026.02.01), Material 3, AGP 9.4.1, Gradle 9.6.0, minSdk 26, targetSdk 37.
 
@@ -140,18 +144,22 @@ Teknologi: Kotlin, Jetpack Compose (BOM 2026.02.01), Material 3, AGP 9.4.1, Grad
 | Toast setelah simpan | Riwayat per hari | Detail hari |
 | ![Profil](docs/screenshots/09-profil-bunda.png) | ![Sudah dicatat](docs/screenshots/10-sarapan-sudah-dicatat.png) | ![Hari lengkap](docs/screenshots/12-hari-lengkap.png) |
 | Profil Bunda | Waktu makan sudah dicatat | Isi piring hari ini lengkap |
+| ![Kalender](docs/screenshots/11-kalender.png) | ![Navbar sembunyi](docs/screenshots/13-navbar-sembunyi.png) | ![Hebat, Bunda](docs/screenshots/14-hebat-bunda.png) |
+| Hanya 7 hari terakhir aktif | Navbar sembunyi saat menggulir | Sapaan setelah hari lengkap |
+| ![Hari lain](docs/screenshots/15-mencatat-hari-lain.png) | | |
+| Mencatat untuk hari lain | | |
 
-Wireframe: [`docs/wireframe.png`](docs/wireframe.png), wireframe lain di [`docs/wireframe/`](docs/wireframe), file desain [`docs/design/maternatrack.pen`](docs/design/maternatrack.pen).
+Wireframe: [`docs/wireframe.png`](docs/wireframe.png), wireframe lain di [`docs/wireframe/`](docs/wireframe): kondisi awal & validasi, umpan balik simpan (toast, pop-up hari lengkap, penanda tanggal), fungsi navbar, sheet Profil dan Detail Hari, rencana layar UAS, serta daftar aset ilustrasi (`aset-ilustrasi.png`), file desain [`docs/design/maternatrack.pen`](docs/design/maternatrack.pen).
 
 ## Hasil uji
 
-- 8 skenario pengujian minimum + 6 skenario tambahan: semua **lulus**. Rincian di [`docs/test-cases.md`](docs/test-cases.md).
-- 24 unit test (`RingkasanTest` 10, `ValidasiTest` 9, `EdukasiTest` 5): semua **lulus**.
+- 8 skenario pengujian minimum + 13 skenario tambahan: semua **lulus**. Rincian di [`docs/test-cases.md`](docs/test-cases.md).
+- 25 unit test (`RingkasanTest` 10, `ValidasiTest` 10, `EdukasiTest` 5): semua **lulus**.
 
 ## Batasan UTS
 
 - Data tersimpan sementara di memori (`mutableStateListOf`); hilang saat aplikasi ditutup.
-- Satu Activity dan satu layar; tab navbar hanya menggulir ke bagian layar.
+- Satu Activity dan satu layar; tab Riwayat dan Edukasi di navbar belum aktif (riwayat dan pesan edukasi tampil di Beranda).
 - Belum bisa mengubah atau menghapus catatan.
 - Pengaturan arahan suplemen berlaku untuk semua hari, termasuk hari sebelumnya.
 - Nama hari dan bulan di dalam dialog kalender mengikuti bahasa perangkat.
@@ -161,6 +169,7 @@ Wireframe: [`docs/wireframe.png`](docs/wireframe.png), wireframe lain di [`docs/
 
 - Room Database dan CRUD lengkap (ubah dan hapus catatan).
 - Beberapa layar: Beranda, Riwayat (filter tanggal, rekap mingguan dengan grafik batang), Detail, dan Edukasi (materi singkat per kelompok makanan). Desainnya sudah ada di [`docs/wireframe/uas-riwayat.png`](docs/wireframe/uas-riwayat.png) dan [`docs/wireframe/uas-edukasi.png`](docs/wireframe/uas-edukasi.png).
+- Tab Riwayat dan Edukasi di navbar (saat ini redup) diaktifkan untuk berpindah ke layar-layar tersebut dengan Navigation Compose.
 
 ## Dokumen lain
 

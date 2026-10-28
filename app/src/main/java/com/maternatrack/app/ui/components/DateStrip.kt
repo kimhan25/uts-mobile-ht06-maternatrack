@@ -1,6 +1,11 @@
 package com.maternatrack.app.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -18,6 +23,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.EditCalendar
 import androidx.compose.material.icons.rounded.KeyboardArrowDown
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDefaults
@@ -38,8 +44,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import com.maternatrack.app.R
+import com.maternatrack.app.logic.HARI_MUNDUR_MAKS
 import com.maternatrack.app.logic.formatBulan
 import com.maternatrack.app.logic.formatPanjang
 import com.maternatrack.app.logic.hariPendek
@@ -52,8 +61,8 @@ import java.time.LocalDate
 import java.time.ZoneOffset
 
 /**
- * Field tanggal: strip 7 hari gaya kalender minggu + tombol bulan yang membuka DatePickerDialog.
- * Tanggal setelah hari ini tidak bisa dipilih.
+ * Field tanggal: strip 7 hari terakhir + tombol bulan yang membuka DatePickerDialog.
+ * Kalender hanya mengizinkan hari ini sampai [HARI_MUNDUR_MAKS] hari sebelumnya.
  */
 @Composable
 fun DateStrip(
@@ -66,9 +75,8 @@ fun DateStrip(
 ) {
     var dialogTerbuka by remember { mutableStateOf(false) }
 
-    // Strip berakhir di hari ini; jika tanggal lama dipilih lewat kalender, strip ikut bergeser
-    val akhir = if (terpilih.isBefore(hariIni.minusDays(6))) terpilih.plusDays(3) else hariIni
-    val hari = (6 downTo 0).map { akhir.minusDays(it.toLong()) }
+    // Strip selalu 7 lingkaran (muat di layar) berakhir di hari ini; batas yang lebih jauh lewat kalender
+    val hari = (6L downTo 0L).map { hariIni.minusDays(it) }
 
     Column {
         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -96,7 +104,6 @@ fun DateStrip(
                     tanggal = t,
                     dipilih = t == terpilih,
                     bercatatan = t in tanggalBercatatan,
-                    bisaDipilih = !t.isAfter(hariIni),
                     onKlik = { onPilih(t) }
                 )
             }
@@ -106,6 +113,39 @@ fun DateStrip(
             Legenda(MtColor.SkyMid, "Dipilih")
             Legenda(MtColor.LimeMid, "Sudah dicatat")
             Legenda(MtColor.DayEmpty, "Belum dicatat")
+        }
+        // Penanda jelas saat Bunda mencatat untuk hari lain, dengan jalan pintas kembali ke hari ini
+        AnimatedVisibility(
+            visible = terpilih != hariIni,
+            enter = expandVertically() + fadeIn(),
+            exit = shrinkVertically() + fadeOut()
+        ) {
+            Row(
+                Modifier
+                    .padding(top = 12.dp)
+                    .fillMaxWidth()
+                    .background(MtColor.SkyTint, RoundedCornerShape(MtRadius.Sm))
+                    .padding(start = 12.dp, end = 8.dp, top = 8.dp, bottom = 8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(Icons.Rounded.EditCalendar, null, tint = MtColor.SkyDeep, modifier = Modifier.size(20.dp))
+                Spacer(Modifier.width(10.dp))
+                Column(Modifier.weight(1f)) {
+                    Text("Mencatat untuk", style = isi(11, 700), color = MtColor.SkyDeep)
+                    Text(formatPanjang(terpilih), style = isi(13, 800), color = MtColor.SkyDeep)
+                }
+                // Tautan teks tanpa wadah agar penanda tetap ringan; pembaca layar menyebut tujuannya lengkap
+                Text(
+                    "Kembali",
+                    style = isi(13, 800),
+                    color = MtColor.Primary,
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(MtRadius.Xs))
+                        .clickable(onClickLabel = "Kembali ke hari ini") { onPilih(hariIni) }
+                        .semantics { contentDescription = "Kembali ke hari ini" }
+                        .padding(horizontal = 10.dp, vertical = 10.dp)
+                )
+            }
         }
         FieldError(error, pemicuError, Modifier.padding(top = 6.dp))
     }
@@ -125,7 +165,6 @@ private fun HariItem(
     tanggal: LocalDate,
     dipilih: Boolean,
     bercatatan: Boolean,
-    bisaDipilih: Boolean,
     onKlik: () -> Unit
 ) {
     val latar by animateColorAsState(
@@ -149,7 +188,7 @@ private fun HariItem(
                 .size(40.dp)
                 .clip(CircleShape)
                 .background(latar)
-                .clickable(enabled = bisaDipilih, onClick = onKlik),
+                .clickable(onClick = onKlik),
             contentAlignment = Alignment.Center
         ) {
             Text(
@@ -182,12 +221,15 @@ private fun DialogTanggal(
     onPilih: (LocalDate) -> Unit,
     onTutup: () -> Unit
 ) {
-    val batas = hariIni.keMillis()
+    val paling = hariIni.minusDays(HARI_MUNDUR_MAKS)
+    val batasAwal = paling.keMillis()
+    val batasAkhir = hariIni.keMillis()
     val state = rememberDatePickerState(
         initialSelectedDateMillis = awal.keMillis(),
+        yearRange = paling.year..hariIni.year,
         selectableDates = object : SelectableDates {
-            override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= batas
-            override fun isSelectableYear(year: Int) = year <= hariIni.year
+            override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis in batasAwal..batasAkhir
+            override fun isSelectableYear(year: Int) = year in paling.year..hariIni.year
         }
     )
     val warna = DatePickerDefaults.colors(containerColor = MtColor.Surface)

@@ -13,7 +13,6 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
@@ -50,12 +49,7 @@ fun ProfilSheet(adaArahanSuplemen: Boolean, onUbahArahan: (Boolean) -> Unit, onT
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    Modifier.size(52.dp).background(MtColor.Header, CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Image(painterResource(R.drawable.art_logo), null, Modifier.size(34.dp))
-                }
+                Image(painterResource(R.drawable.art_logo), null, Modifier.size(52.dp))
                 Spacer(Modifier.width(14.dp))
                 Column {
                     Text("Profil Bunda", style = judul(22), color = MtColor.Ink)

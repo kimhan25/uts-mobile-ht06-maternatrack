@@ -1,4 +1,5 @@
 <resources>
     <color name="latar">#F4EFFF</color>
-    <color name="header">#FFD95C</color>
+    <!-- Latar ikon launcher: ungu lingkaran luar logo -->
+    <color name="ikon_latar">#A489FD</color>
 </resources>

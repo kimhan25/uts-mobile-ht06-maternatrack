@@ -18,6 +18,7 @@ object MtColor {
     val Error = Color(0xFFE04F64)
     val DayEmpty = Color(0xFFEEEAF3)
     val LimeTint = Color(0xFFF1FAE6)
+    val SkyTint = Color(0xFFEAF6FD)
 
     // Warna kategori: kuat, mid (latar), deep (ikon/teks)
     val Lemon = Color(0xFFFFC93C)
@@ -38,6 +39,10 @@ object MtColor {
     val Sky = Color(0xFF5EBEF0)
     val SkyMid = Color(0xFFC8EAFB)
     val SkyDeep = Color(0xFF1F86BE)
+    // Krem kue kering untuk Camilan
+    val Cookie = Color(0xFFF1D2A6)
+    val CookieMid = Color(0xFFFFF2DF)
+    val CookieDeep = Color(0xFF9A6A36)
 }
 
 object MtRadius {

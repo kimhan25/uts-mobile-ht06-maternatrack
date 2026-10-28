@@ -29,7 +29,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -38,6 +37,7 @@ import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.Dp
@@ -120,7 +120,10 @@ fun CentangHijau(modifier: Modifier = Modifier, ukuran: Dp = 32.dp, animasi: Boo
             goresan.animateTo(1f, tween(300))
         }
     }
-    Canvas(modifier.size(ukuran).scale(skala.value)) {
+    Canvas(modifier.size(ukuran).graphicsLayer {
+        scaleX = skala.value
+        scaleY = skala.value
+    }) {
         val k = size.width / 32f
         drawCircle(MtColor.Lime, radius = 14f * k)
         val centang = Path().apply {

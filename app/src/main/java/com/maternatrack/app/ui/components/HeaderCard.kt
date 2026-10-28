@@ -100,11 +100,13 @@ fun HeaderCard(hariIni: LocalDate, lengkap: Boolean, pemicuLompat: Int, modifier
                 softWrap = false
             )
             Spacer(Modifier.height(4.dp))
+            // Baris dipatah manual agar seimbang dan tidak menyisakan satu kata di baris kedua
             Text(
-                if (lengkap) "Isi piring hari ini sudah lengkap" else "Yuk lengkapi isi piring hari ini",
+                if (lengkap) "Isi piring hari ini\nsudah lengkap" else "Yuk lengkapi isi piring\nhari ini",
                 style = isi(14, 600),
                 color = MtColor.Ink,
-                modifier = Modifier.width(150.dp)
+                maxLines = 2,
+                modifier = Modifier.width(180.dp)
             )
         }
     }

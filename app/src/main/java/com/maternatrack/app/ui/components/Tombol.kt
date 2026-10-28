@@ -1,8 +1,13 @@
 package com.maternatrack.app.ui.components
 
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
@@ -15,13 +20,17 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.material3.ripple
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.Text
 import com.maternatrack.app.ui.theme.MtColor
 import com.maternatrack.app.ui.theme.MtRadius
 import com.maternatrack.app.ui.theme.judul
@@ -29,13 +38,15 @@ import com.maternatrack.app.ui.theme.judul
 /** Tombol primer: latar pink, teks putih (Simpan, Tutup, Mengerti). */
 @Composable
 fun TombolUtama(teks: String, onKlik: () -> Unit, modifier: Modifier = Modifier, ikon: ImageVector? = null) {
+    val sumber = remember { MutableInteractionSource() }
     Row(
         modifier
             .fillMaxWidth()
             .height(52.dp)
+            .mengecilSaatDitekan(sumber)
             .clip(RoundedCornerShape(MtRadius.Md))
             .background(MtColor.Primary)
-            .clickable(onClick = onKlik),
+            .clickable(interactionSource = sumber, indication = ripple(), onClick = onKlik),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -50,13 +61,15 @@ fun TombolUtama(teks: String, onKlik: () -> Unit, modifier: Modifier = Modifier,
 /** Tombol sekunder: latar putih bergaris (Reset). */
 @Composable
 fun TombolGaris(teks: String, ikon: ImageVector, onKlik: () -> Unit, modifier: Modifier = Modifier) {
+    val sumber = remember { MutableInteractionSource() }
     Row(
         modifier
             .height(52.dp)
+            .mengecilSaatDitekan(sumber)
             .clip(RoundedCornerShape(MtRadius.Md))
             .background(MtColor.Surface)
             .border(1.5.dp, MtColor.Line, RoundedCornerShape(MtRadius.Md))
-            .clickable(onClick = onKlik)
+            .clickable(interactionSource = sumber, indication = ripple(), onClick = onKlik)
             .padding(horizontal = 18.dp),
         horizontalArrangement = Arrangement.Center,
         verticalAlignment = Alignment.CenterVertically
@@ -76,4 +89,19 @@ fun PegangSheet() {
             .size(width = 40.dp, height = 5.dp)
             .background(MtColor.Line, CircleShape)
     )
+}
+
+/** Tombol mengecil sedikit saat ditekan; skala dibaca di graphicsLayer agar tidak recompose per frame. */
+@Composable
+private fun Modifier.mengecilSaatDitekan(sumber: MutableInteractionSource): Modifier {
+    val ditekan by sumber.collectIsPressedAsState()
+    val skala = animateFloatAsState(
+        if (ditekan) 0.96f else 1f,
+        spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
+        label = "skalaTekan"
+    )
+    return graphicsLayer {
+        scaleX = skala.value
+        scaleY = skala.value
+    }
 }

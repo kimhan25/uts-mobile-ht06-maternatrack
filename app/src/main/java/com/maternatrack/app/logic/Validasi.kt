@@ -9,6 +9,9 @@ const val PORSI_MIN = 1
 const val PORSI_MAKS = 5
 const val CERITA_MAKS = 100
 
+/** Catatan boleh untuk hari ini dan 6 hari sebelumnya (7 hari terakhir, sama dengan strip tanggal). */
+const val HARI_MUNDUR_MAKS = 6L
+
 /**
  * Isi formulir apa adanya. Porsi disimpan sebagai teks agar ketikan seperti "a" atau "-1"
  * tidak membuat aplikasi crash; baru diubah ke Int setelah lolos validasi.
@@ -48,6 +51,8 @@ fun validasiCatatan(input: FormInput, semua: List<CatatanMakan>, hariIni: LocalD
 
     if (input.tanggal.isAfter(hariIni)) {
         error[FieldForm.TANGGAL] = "Tanggal tidak boleh di masa depan"
+    } else if (input.tanggal.isBefore(hariIni.minusDays(HARI_MUNDUR_MAKS))) {
+        error[FieldForm.TANGGAL] = "Pilih tanggal dalam ${HARI_MUNDUR_MAKS + 1} hari terakhir"
     }
 
     val waktu = input.waktu

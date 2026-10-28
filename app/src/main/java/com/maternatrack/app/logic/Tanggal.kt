@@ -23,5 +23,8 @@ fun formatKartu(t: LocalDate, hariIni: LocalDate): String {
     return "$depan, ${t.dayOfMonth} ${BULAN_PENDEK[t.monthValue - 1]}"
 }
 
+/** "26 Okt" */
+fun formatPendek(t: LocalDate) = "${t.dayOfMonth} ${BULAN_PENDEK[t.monthValue - 1]}"
+
 /** "Okt 2026" */
 fun formatBulan(t: LocalDate) = "${BULAN_PENDEK[t.monthValue - 1]} ${t.year}"

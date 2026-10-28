@@ -30,7 +30,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import com.maternatrack.app.model.WaktuMakan
@@ -114,7 +114,10 @@ private fun KartuWaktu(
         }
     }
 
-    Box(modifier.scale(skala.value)) {
+    Box(modifier.graphicsLayer {
+        scaleX = skala.value
+        scaleY = skala.value
+    }) {
         Column(
             Modifier
                 .fillMaxWidth()

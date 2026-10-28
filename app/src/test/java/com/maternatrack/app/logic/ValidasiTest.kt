@@ -49,6 +49,14 @@ class ValidasiTest {
     }
 
     @Test
+    fun tanggalLebihDariTujuhHariDitolak() {
+        val hasil = validasiCatatan(form(tanggal = hariIni.minusDays(7)), emptyList(), hariIni)
+        assertEquals("Pilih tanggal dalam 7 hari terakhir", hasil.errorField[FieldForm.TANGGAL])
+        // 6 hari lalu masih termasuk 7 hari terakhir
+        assertTrue(validasiCatatan(form(tanggal = hariIni.minusDays(6)), emptyList(), hariIni).valid)
+    }
+
+    @Test
     fun waktuMakanWajibDipilih() {
         val hasil = validasiCatatan(form(waktu = null), emptyList(), hariIni)
         assertEquals("Pilih waktu makan", hasil.errorField[FieldForm.WAKTU])

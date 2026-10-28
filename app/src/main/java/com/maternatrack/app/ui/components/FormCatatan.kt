@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import com.maternatrack.app.logic.CERITA_MAKS
 import com.maternatrack.app.logic.FieldForm
 import com.maternatrack.app.logic.HasilValidasi
+import com.maternatrack.app.logic.formatPendek
 import com.maternatrack.app.model.KelompokMakanan
 import com.maternatrack.app.model.WaktuMakan
 import com.maternatrack.app.ui.theme.MtColor
@@ -124,7 +125,13 @@ fun FormCatatan(
             FieldCerita(cerita, onCerita)
             Row(Modifier.padding(top = 4.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 TombolGaris("Reset", Icons.Rounded.Refresh, onReset)
-                TombolUtama("Simpan Catatan", onSimpan, Modifier.weight(1f), ikon = Icons.Rounded.AddCircleOutline)
+                TombolUtama(
+                    // Tombol menyebut tanggalnya saat Bunda mencatat untuk hari lain
+                    if (tanggal == hariIni) "Simpan Catatan" else "Simpan untuk ${formatPendek(tanggal)}",
+                    onSimpan,
+                    Modifier.weight(1f),
+                    ikon = Icons.Rounded.AddCircleOutline
+                )
             }
         }
     }
@@ -197,6 +204,8 @@ private fun BagianIsiPiring(
         }
         Spacer(Modifier.height(12.dp))
         Text("Ketuk untuk memilih, lalu atur porsinya", style = isi(12, 600), color = MtColor.InkMuted)
+        // Pesan diletakkan dekat judul agar terlihat bersama pesan Waktu makan
+        FieldError(hasil?.errorField?.get(FieldForm.ISI_PIRING), pemicuError, Modifier.padding(top = 8.dp))
         Column(
             Modifier.padding(top = 22.dp),
             verticalArrangement = Arrangement.spacedBy(18.dp)
@@ -215,7 +224,6 @@ private fun BagianIsiPiring(
             }
             SuplemenPill(dicentang = minumSuplemen, aktif = adaArahanSuplemen, onUbah = onSuplemen)
         }
-        FieldError(hasil?.errorField?.get(FieldForm.ISI_PIRING), pemicuError, Modifier.padding(top = 10.dp))
         Row(Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
             Icon(Icons.Rounded.Info, null, tint = MtColor.InkMuted, modifier = Modifier.size(16.dp))
             Spacer(Modifier.width(6.dp))

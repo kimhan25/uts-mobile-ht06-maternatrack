@@ -15,6 +15,7 @@ val Peach = WarnaKategori(MtColor.Peach, MtColor.PeachMid, MtColor.PeachDeep)
 val Lime = WarnaKategori(MtColor.Lime, MtColor.LimeMid, MtColor.LimeDeep)
 val Grape = WarnaKategori(MtColor.Grape, MtColor.GrapeMid, MtColor.GrapeDeep)
 val Sky = WarnaKategori(MtColor.Sky, MtColor.SkyMid, MtColor.SkyDeep)
+val Cookie = WarnaKategori(MtColor.Cookie, MtColor.CookieMid, MtColor.CookieDeep)
 
 // Gambar dan warna tiap kelompok makanan (dipisah dari model agar model tetap Kotlin murni)
 val KelompokMakanan.gambar: Int
@@ -43,12 +44,21 @@ val WaktuMakan.gambar: Int
         WaktuMakan.CAMILAN -> R.drawable.art_camilan
     }
 
+/** Nama yang dipakai di kalimat, misalnya "Makan malam tercatat". */
+val WaktuMakan.namaLengkap: String
+    get() = when (this) {
+        WaktuMakan.SARAPAN -> "Sarapan"
+        WaktuMakan.SIANG -> "Makan siang"
+        WaktuMakan.MALAM -> "Makan malam"
+        WaktuMakan.CAMILAN -> "Camilan"
+    }
+
 val WaktuMakan.warna: WarnaKategori
     get() = when (this) {
         WaktuMakan.SARAPAN -> Peach
         WaktuMakan.SIANG -> Lemon
         WaktuMakan.MALAM -> Grape
-        WaktuMakan.CAMILAN -> Melon
+        WaktuMakan.CAMILAN -> Cookie
     }
 
 /** Suplemen bukan kelompok makanan, tapi tampil berdampingan dengan warna langit. */

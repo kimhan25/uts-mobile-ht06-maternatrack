@@ -37,7 +37,7 @@ import com.maternatrack.app.ui.theme.isi
 import com.maternatrack.app.ui.theme.judul
 import java.time.LocalDate
 
-/** Judul bagian riwayat + chip jumlah catatan makan (ringkasan kedua). */
+/** Judul bagian riwayat + chip jumlah catatan makan (ringkasan kedua), ditulis "kali makan" agar tidak tertukar dengan Cerita Bunda. */
 @Composable
 fun JudulRiwayat(jumlahCatatan: Int) {
     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
@@ -50,7 +50,7 @@ fun JudulRiwayat(jumlahCatatan: Int) {
         ) {
             Image(painterResource(R.drawable.art_buku), null, Modifier.size(20.dp))
             Spacer(Modifier.width(4.dp))
-            Text("$jumlahCatatan catatan", style = isi(12, 800), color = MtColor.Ink)
+            Text("$jumlahCatatan kali makan", style = isi(12, 800), color = MtColor.Ink)
         }
     }
 }

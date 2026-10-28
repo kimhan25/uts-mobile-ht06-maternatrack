@@ -19,9 +19,12 @@ android {
 
     buildTypes {
         release {
+            // R8 memangkas dan mengoptimasi kode agar Compose berjalan mulus dan APK lebih kecil
             optimization {
-                enable = false
+                enable = true
             }
+            // APK pengumpulan UTS ditandatangani dengan kunci debug agar bisa langsung dipasang
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
     compileOptions {

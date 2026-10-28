@@ -38,14 +38,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -125,7 +124,10 @@ private fun KerangkaPill(
     }
     val miring by animateFloatAsState(if (dipilih) -8f else 0f, spring(dampingRatio = 0.35f), label = "miring")
 
-    Box(Modifier.fillMaxWidth().scale(skala.value)) {
+    Box(Modifier.fillMaxWidth().graphicsLayer {
+        scaleX = skala.value
+        scaleY = skala.value
+    }) {
         Row(
             Modifier
                 .fillMaxWidth()
@@ -151,7 +153,7 @@ private fun KerangkaPill(
             modifier = Modifier
                 .offset(x = 4.dp, y = (-12).dp)
                 .size(76.dp)
-                .rotate(miring)
+                .graphicsLayer { rotationZ = miring }
         )
     }
 }

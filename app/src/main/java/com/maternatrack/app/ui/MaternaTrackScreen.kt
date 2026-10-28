@@ -1,5 +1,10 @@
 package com.maternatrack.app.ui
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.collectIsDraggedAsState
@@ -50,6 +55,7 @@ import com.maternatrack.app.model.CatatanMakan
 import com.maternatrack.app.model.KelompokMakanan
 import com.maternatrack.app.model.StatusHarian
 import com.maternatrack.app.model.WaktuMakan
+import com.maternatrack.app.ui.components.Confetti
 import com.maternatrack.app.ui.components.DetailHariSheet
 import com.maternatrack.app.ui.components.EdukasiCard
 import com.maternatrack.app.ui.components.EmptyRiwayat
@@ -61,9 +67,11 @@ import com.maternatrack.app.ui.components.PiringHariIniCard
 import com.maternatrack.app.ui.components.ProfilSheet
 import com.maternatrack.app.ui.components.RiwayatHariCard
 import com.maternatrack.app.ui.components.TabNav
+import com.maternatrack.app.ui.components.ToastSimpan
 import com.maternatrack.app.ui.theme.MtColor
 import com.maternatrack.app.ui.theme.judul
 import java.time.LocalDate
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 /**
@@ -93,6 +101,16 @@ fun MaternaTrackScreen() {
     var cerita by remember { mutableStateOf("") }
     var hasil by remember { mutableStateOf<HasilValidasi?>(null) }
     var pemicuError by remember { mutableIntStateOf(0) }
+
+    // Umpan balik setelah simpan: toast 2 detik, dan confetti jika hari ini menjadi lengkap
+    var toast by remember { mutableStateOf<CatatanMakan?>(null) }
+    var pemicuConfetti by remember { mutableIntStateOf(0) }
+    LaunchedEffect(toast) {
+        if (toast != null) {
+            delay(2000)
+            toast = null
+        }
+    }
 
     // Pesan kesalahan sebuah field hilang begitu field itu diubah
     fun hapusError(field: FieldForm? = null, kelompok: KelompokMakanan? = null) {
@@ -130,8 +148,13 @@ fun MaternaTrackScreen() {
             pemicuError++
             return
         }
+        val persenSebelum = ringkasanHari(tanggal, catatan, adaArahanSuplemen).persentase
         // Input valid diubah menjadi object lalu ditambahkan ke daftar sementara
-        catatan.add(input.keCatatan(id = System.currentTimeMillis()))
+        val baru = input.keCatatan(id = System.currentTimeMillis())
+        catatan.add(baru)
+        val persenSesudah = ringkasanHari(tanggal, catatan, adaArahanSuplemen).persentase
+        toast = baru
+        if (tanggal == hariIni && persenSebelum < 100 && persenSesudah == 100) pemicuConfetti++
         kosongkanIsian()
         waktu = waktuBerikutnya(tanggal, catatan)
     }
@@ -187,7 +210,11 @@ fun MaternaTrackScreen() {
         ) {
             item(key = "appbar") { AppBar() }
             item(key = "header") {
-                HeaderCard(hariIni, lengkap = ringkasanHariIni.status == StatusHarian.LENGKAP)
+                HeaderCard(
+                    hariIni,
+                    lengkap = ringkasanHariIni.status == StatusHarian.LENGKAP,
+                    pemicuLompat = pemicuConfetti
+                )
             }
             item(key = "piring") { PiringHariIniCard(ringkasanHariIni, adaArahanSuplemen) }
             item(key = "form") {
@@ -249,6 +276,21 @@ fun MaternaTrackScreen() {
             item(key = "edukasi") { EdukasiCard(pesanEdukasi(ringkasanHariIni)) }
         }
 
+        // Toast muncul di atas navbar; catatan terakhir diingat agar animasi keluar tetap berisi
+        var toastTerakhir by remember { mutableStateOf<CatatanMakan?>(null) }
+        if (toast != null) toastTerakhir = toast
+        AnimatedVisibility(
+            visible = toast != null,
+            enter = slideInVertically { it } + fadeIn(),
+            exit = slideOutVertically { it } + fadeOut(),
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .navigationBarsPadding()
+                .padding(start = 16.dp, end = 16.dp, bottom = 88.dp)
+        ) {
+            toastTerakhir?.let { ToastSimpan(it) }
+        }
+
         FloatingNavBar(
             aktif = tabDiketuk ?: tabAktif,
             onTab = { tab ->
@@ -271,6 +313,8 @@ fun MaternaTrackScreen() {
                 .navigationBarsPadding()
                 .padding(start = 16.dp, end = 16.dp, bottom = 12.dp)
         )
+
+        Confetti(pemicuConfetti)
     }
 
     val detail = harian.firstOrNull { it.tanggal == detailTanggal }

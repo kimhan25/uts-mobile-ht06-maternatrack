@@ -1,9 +1,12 @@
 package com.maternatrack.app.ui.components
 
+import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.infiniteRepeatable
 import androidx.compose.animation.core.rememberInfiniteTransition
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -20,7 +23,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,7 +42,7 @@ import java.time.LocalDate
 
 /** Kartu sapaan kuning: tanggal, sapaan, satu kalimat, dan maskot Bunda yang mengambang. */
 @Composable
-fun HeaderCard(hariIni: LocalDate, lengkap: Boolean, modifier: Modifier = Modifier) {
+fun HeaderCard(hariIni: LocalDate, lengkap: Boolean, pemicuLompat: Int, modifier: Modifier = Modifier) {
     val transisi = rememberInfiniteTransition(label = "maskot")
     val ambang by transisi.animateFloat(
         initialValue = 0f,
@@ -45,6 +50,14 @@ fun HeaderCard(hariIni: LocalDate, lengkap: Boolean, modifier: Modifier = Modifi
         animationSpec = infiniteRepeatable(tween(1600), RepeatMode.Reverse),
         label = "ambang"
     )
+    // Maskot melompat setiap isi piring hari ini menjadi lengkap
+    val lompat = remember { Animatable(0f) }
+    LaunchedEffect(pemicuLompat) {
+        if (pemicuLompat > 0) {
+            lompat.animateTo(-28f, tween(180))
+            lompat.animateTo(0f, spring(dampingRatio = 0.3f, stiffness = Spring.StiffnessMediumLow))
+        }
+    }
 
     Box(
         modifier
@@ -69,20 +82,22 @@ fun HeaderCard(hariIni: LocalDate, lengkap: Boolean, modifier: Modifier = Modifi
                 .align(Alignment.TopEnd)
                 .offset(x = 26.dp, y = 6.dp)
                 .size(200.dp)
-                .graphicsLayer { translationY = ambang.dp.toPx() }
+                .graphicsLayer { translationY = (ambang + lompat.value).dp.toPx() }
         )
         Column(
             Modifier
                 .align(Alignment.CenterStart)
                 .padding(start = 20.dp)
-                .width(180.dp)
+                .width(220.dp)
         ) {
             Text(formatPanjang(hariIni), style = isi(13, 700), color = MtColor.Ink)
             Spacer(Modifier.height(4.dp))
             Text(
                 if (lengkap) "Hebat, Bunda!" else "Halo, Bunda!",
                 style = judul(30),
-                color = MtColor.Ink
+                color = MtColor.Ink,
+                maxLines = 1,
+                softWrap = false
             )
             Spacer(Modifier.height(4.dp))
             Text(

@@ -2,6 +2,7 @@ package com.maternatrack.app.ui.components
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,13 +12,17 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AddCircleOutline
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Refresh
+import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -52,6 +57,7 @@ fun FormCatatan(
     minumSuplemen: Boolean,
     onSuplemen: (Boolean) -> Unit,
     adaArahanSuplemen: Boolean,
+    onBukaProfil: () -> Unit,
     cerita: String,
     onCerita: (String) -> Unit,
     onSimpan: () -> Unit,
@@ -110,6 +116,7 @@ fun FormCatatan(
                     minumSuplemen = minumSuplemen,
                     onSuplemen = onSuplemen,
                     adaArahanSuplemen = adaArahanSuplemen,
+                    onBukaProfil = onBukaProfil,
                     hasil = hasil,
                     pemicuError = pemicuError
                 )
@@ -168,6 +175,7 @@ private fun BagianIsiPiring(
     minumSuplemen: Boolean,
     onSuplemen: (Boolean) -> Unit,
     adaArahanSuplemen: Boolean,
+    onBukaProfil: () -> Unit,
     hasil: HasilValidasi?,
     pemicuError: Int
 ) {
@@ -208,5 +216,20 @@ private fun BagianIsiPiring(
             SuplemenPill(dicentang = minumSuplemen, aktif = adaArahanSuplemen, onUbah = onSuplemen)
         }
         FieldError(hasil?.errorField?.get(FieldForm.ISI_PIRING), pemicuError, Modifier.padding(top = 10.dp))
+        Row(Modifier.padding(top = 12.dp), verticalAlignment = Alignment.CenterVertically) {
+            Icon(Icons.Rounded.Info, null, tint = MtColor.InkMuted, modifier = Modifier.size(16.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(
+                if (adaArahanSuplemen) "Tidak diresepkan suplemen? " else "Suplemen tidak dihitung. ",
+                style = isi(12, 700),
+                color = MtColor.InkMuted
+            )
+            Text(
+                "Atur di Profil",
+                style = isi(12, 800),
+                color = MtColor.Primary,
+                modifier = Modifier.clickable(onClick = onBukaProfil)
+            )
+        }
     }
 }

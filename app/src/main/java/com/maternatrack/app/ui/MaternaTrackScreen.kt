@@ -58,6 +58,7 @@ import com.maternatrack.app.ui.components.FormCatatan
 import com.maternatrack.app.ui.components.HeaderCard
 import com.maternatrack.app.ui.components.JudulRiwayat
 import com.maternatrack.app.ui.components.PiringHariIniCard
+import com.maternatrack.app.ui.components.ProfilSheet
 import com.maternatrack.app.ui.components.RiwayatHariCard
 import com.maternatrack.app.ui.components.TabNav
 import com.maternatrack.app.ui.theme.MtColor
@@ -142,6 +143,7 @@ fun MaternaTrackScreen() {
 
     // Tanggal yang sedang dibuka di sheet Detail Hari (null = sheet tertutup)
     var detailTanggal by remember { mutableStateOf<LocalDate?>(null) }
+    var profilTerbuka by remember { mutableStateOf(false) }
 
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -219,6 +221,7 @@ fun MaternaTrackScreen() {
                         hapusError(FieldForm.ISI_PIRING)
                     },
                     adaArahanSuplemen = adaArahanSuplemen,
+                    onBukaProfil = { profilTerbuka = true },
                     cerita = cerita,
                     onCerita = { cerita = it },
                     onSimpan = ::simpan,
@@ -262,7 +265,7 @@ fun MaternaTrackScreen() {
                 tabDiketuk = TabNav.BERANDA
                 gulirKe(indeksForm)
             },
-            onProfil = { },
+            onProfil = { profilTerbuka = true },
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .navigationBarsPadding()
@@ -273,6 +276,17 @@ fun MaternaTrackScreen() {
     val detail = harian.firstOrNull { it.tanggal == detailTanggal }
     if (detail != null) {
         DetailHariSheet(detail, adaArahanSuplemen, onTutup = { detailTanggal = null })
+    }
+    if (profilTerbuka) {
+        ProfilSheet(
+            adaArahanSuplemen = adaArahanSuplemen,
+            onUbahArahan = { ada ->
+                adaArahanSuplemen = ada
+                // Tanpa arahan nakes, centang suplemen di form dibatalkan
+                if (!ada) minumSuplemen = false
+            },
+            onTutup = { profilTerbuka = false }
+        )
     }
 }
 
